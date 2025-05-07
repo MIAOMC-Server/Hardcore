@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class Messager {
     private static HardCore plugin;
-    private static final String DEFAULT_PREFIX = "&7[&a难狗模式&7] ";
+    private static final String DEFAULT_PREFIX = "&7[&a硬核模式&7] ";
 
 
     /**
@@ -111,7 +111,7 @@ public class Messager {
      */
     public static void sendTimeRemainMessage(UUID playerId, long timeRemain) {
         String formattedTime = formatTime(timeRemain);
-        sendMessage(playerId, "&c你仍在死亡冷却中，还需等待 &e" + formattedTime + " &c才能复活！");
+        sendMessage(playerId, "&c你仍在死亡冷却中，还需等待 &e" + formattedTime + " &c才能重生！");
     }
 
     /**
@@ -122,26 +122,26 @@ public class Messager {
      */
     public static void sendDeathMessage(UUID playerId, int cooldownTime) {
         String formattedTime = formatTime(cooldownTime);
-        sendMessage(playerId, "&c你已死亡，将在 &e" + formattedTime + " &c后才能复活！");
+        sendMessage(playerId, "&c你已死亡，将在 &e" + formattedTime + " &c后被允许重生！");
     }
 
     /**
-     * 发送复活消息
+     * 发送重生消息
      *
      * @param playerId 玩家UUID
      */
     public static void sendRevivalMessage(UUID playerId) {
-        sendMessage(playerId, "&a你已复活，祝游戏愉快！");
+        sendMessage(playerId, "&a重生成功，请小心行事！");
     }
 
     /**
-     * 发送复活方式通知
+     * 发送重生方式通知
      *
      * @param playerId 玩家UUID
-     * @param method   复活方式
+     * @param method   重生方式
      */
     public static void sendRevivalMethodMessage(UUID playerId, String method) {
-        sendMessage(playerId, "&a你通过 &e" + method + " &a方式复活了！");
+        sendMessage(playerId, "&a你通过 &e" + method + " &a方式重生了！");
     }
 
     /**

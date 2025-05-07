@@ -51,6 +51,18 @@ public class MHCPlaceholderHook extends PlaceholderExpansion {
                 return "0";
             }
 
+            case "time_remain_formatted" -> {
+                Map<String, Object> cooldownInfo = plugin.getMySQL().isPlayerInCooldown(player.getUniqueId());
+                if ((boolean) cooldownInfo.get("status")) {
+                    long seconds = (long) cooldownInfo.get("timeRemain");
+                    long hours = seconds / 3600;
+                    long minutes = (seconds % 3600) / 60;
+                    long remainingSeconds = seconds % 60;
+                    return String.format("%02d时%02d分%02d秒", hours, minutes, remainingSeconds);
+                }
+                return "00时00分00秒";
+            }
+
 
             // %mhc_is_coolingdown% - 玩家是否在冷却中（true/false）
             case "is_coolingdown" -> {

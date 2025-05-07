@@ -1,15 +1,14 @@
 settings:
   serverName: root # 默认 root 用于区分子服
   reviveCooldown: 3600 #设置成0关闭，默认3600秒，复活时间，单位秒(重生冷却时间)
-  messagePrefix: '&7[&a难狗模式&7] ' # 消息前缀
+  messagePrefix: '&7[&a硬核模式&7] ' # 消息前缀
   useHardcoreHearts: true  # 是否使用极限模式爱心显示
   keepInventory: false # 是否保留物品
   reviveProcess: # 重生命令序列 {player} 代表玩家名
-    - "/mv tp {player} spawn"
+    - "tell {player} 重生成功！"
   # 将会按顺序执行，最后玩家会被调整为生存模式，因此无需在命令中设置
-
   reviveNeed: # 复活所需物品
-    - playerpoints: 100 # 玩家点数
+    - playerpoints: 100 # 玩家点数，暂时只有这一项
 
 database:
   host: localhost # 数据库主机地址
@@ -17,4 +16,4 @@ database:
   name: dbName # 数据库名称
   username: userName # 数据库用户名
   password: userPassword # 数据库密码
-  tableName: hardcoreData # 创建的数据表的名称
+  tablename: hardcoreData # 创建的数据表的名称

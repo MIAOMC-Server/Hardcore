@@ -17,19 +17,22 @@ dependencies:
       load: BEFORE
       required: false
 
-permissions:
-  miaomc.hardcore.admin:
-    description: 允许管理员执行所有管理命令
-    default: op
-  miaomc.hardcore.revive:
-    description: 允许玩家复活
-    default: true
 commands:
   mhc:
-    description: 难狗模式主命令
+    description: 硬核模式主命令
     usage: /mhc help
     aliases: [ hardcore ]
+    permission: miaomc.hardcore.revive
   hardcore:
-    description: 难狗模式主命令
+    description: 硬核模式主命令
     usage: /hardcore help
     aliases: [ mhc ]
+    permission: miaomc.hardcore.revive
+
+permissions:
+  miaomc.hardcore.admin:
+    default: op
+  miaomc.hardcore.use:
+    default: true
+  miaomc.hardcore.revive:
+    default: true

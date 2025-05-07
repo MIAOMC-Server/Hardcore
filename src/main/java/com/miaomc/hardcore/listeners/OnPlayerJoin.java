@@ -42,9 +42,16 @@ public class OnPlayerJoin implements Listener {
             // 设置定时器，当冷却结束时通知玩家
             scheduleRevivalTask(playerUUID, timeRemain);
         } else {
-            // 玩家不在冷却中，检查是否启用极限模式爱心
-            if (plugin.getConfig().getBoolean("settings.useHardcoreHearts", true)) {
-                // 为玩家设置极限模式爱心显示
+            // 检查玩家是否有未处理的死亡记录
+            if (plugin.getMySQL().hasUnhandledDeathRecord(playerUUID)) {
+                // 强制设置为观察者模式
+                player.setGameMode(GameMode.SPECTATOR);
+
+                // 发送提示消息，告知玩家需要手动复活
+                Messager.sendMessage(playerUUID, "&a冷却结束！");
+                Messager.sendMessage(playerUUID, "&e使用 /mhc revive 命令重生。");
+            } else if (plugin.getConfig().getBoolean("settings.useHardcoreHearts", true)) {
+                // 玩家不在冷却中且已正确复活，设置极限模式爱心显示
                 HardcoreDisplayManager.setHardcoreHearts(player);
             }
         }
@@ -96,7 +103,7 @@ public class OnPlayerJoin implements Listener {
 
                 // 发送剩余时间提醒
                 long remainingTime = (long) currentStatus.get("timeRemain");
-                Messager.sendMessage(playerUUID, "&7距离复活还剩 &e" + Messager.formatTime(remainingTime) + "&7。");
+                Messager.sendMessage(playerUUID, "&7距离重生还剩 &e" + Messager.formatTime(remainingTime) + "&7。");
             }, reminderInterval, reminderInterval);
         }
     }

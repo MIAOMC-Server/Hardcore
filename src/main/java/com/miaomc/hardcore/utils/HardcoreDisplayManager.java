@@ -21,9 +21,6 @@ public class HardcoreDisplayManager {
         // 临时将世界设置为极限模式并确保玩家处于生存模式
         world.setHardcore(true);
         player.setGameMode(GameMode.SURVIVAL);
-
-        // 延迟恢复原有难度设置（如果需要）
-        // 这里不立即恢复是为了让客户端有时间更新显示
     }
 
     /**

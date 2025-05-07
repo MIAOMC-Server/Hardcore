@@ -37,9 +37,10 @@ public class OnPlayerDeath implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
+        Location deathLoc = player.getLocation().clone();
 
         // 保存死亡位置
-        deathLocations.put(playerUUID, player.getLocation().clone());
+        deathLocations.put(playerUUID, deathLoc);
 
         // 检查玩家是否已有死亡记录
         Map<String, Object> cooldownInfo = plugin.getMySQL().isPlayerInCooldown(playerUUID);
@@ -47,73 +48,36 @@ public class OnPlayerDeath implements Listener {
             // 玩家已有死亡记录，不再重复记录
             Messager.sendMessage(playerUUID, "&c你已经处于死亡状态，无需重复记录。");
         } else {
-            // 获取当前时间戳（秒）
+            // 获取当前时间戳和复活冷却时间（秒）
             long currentTime = System.currentTimeMillis() / 1000;
-
-            // 获取复活冷却时间（秒）
             int cooldownTime = config.getInt("settings.reviveCooldown", 3600); // 默认1小时
             long reviveTime = currentTime + cooldownTime;
 
-            // 使用Paper API获取死亡消息
-            Component deathMessageComponent = event.deathMessage();
-            String deathCause = deathMessageComponent != null ?
-                    LegacyComponentSerializer.legacySection().serialize(deathMessageComponent) :
-                    "Unknown";
+            // 获取死亡消息
+            String deathCause = getDeathMessage(event);
 
-            // 创建死亡数据
-            Map<String, Object> deathDataMap = new HashMap<>();
-            deathDataMap.put("deathAt", currentTime);
-            deathDataMap.put("reviveAt", reviveTime);
-            deathDataMap.put("deathCaused", deathCause);
-
-            // 保存死亡位置信息
-            Location deathLoc = player.getLocation();
-            deathDataMap.put("deathX", deathLoc.getX());
-            deathDataMap.put("deathY", deathLoc.getY());
-            deathDataMap.put("deathZ", deathLoc.getZ());
-            deathDataMap.put("deathWorld", deathLoc.getWorld().getName());
-
-            // 将死亡数据存入数据库
-            String deathDataJson = convertMapToJsonString(deathDataMap);
-            plugin.getMySQL().insertPlayerDeathData(playerUUID, deathDataJson, null);
+            // 创建并保存死亡数据
+            Map<String, Object> deathDataMap = createDeathDataMap(currentTime, reviveTime, deathCause, deathLoc);
+            plugin.getMySQL().insertPlayerDeathData(playerUUID, convertMapToJsonString(deathDataMap), null);
 
             // 告知玩家复活冷却时间
             Messager.sendDeathMessage(playerUUID, cooldownTime);
         }
 
+        // 广播死亡消息
         event.setCancelled(true);
         if (event.deathMessage() != null) {
-            plugin.getServer().broadcast(event.deathMessage());
+            plugin.getServer().broadcast(Objects.requireNonNull(event.deathMessage()));
         }
 
         // 手动统计死亡
         player.setStatistic(Statistic.DEATHS, player.getStatistic(Statistic.DEATHS) + 1);
 
-        if (!config.getBoolean("settings.keepInventory", false)) {
-            Location deathLoc = player.getLocation();
-            ItemStack[] items = player.getInventory().getContents();
-            player.getInventory().clear();
-            for (ItemStack item : items) {
-                if (item != null && !item.getType().isAir()) {
-                    player.getWorld().dropItemNaturally(deathLoc, item);
-                }
-            }
-            player.getInventory().clear();
-        }
+        // 处理物品掉落
+        handleItemDrop(player, deathLoc);
 
-
-        // 立即重生玩家并设置为旁观者模式（1 tick后执行，确保死亡事件完全处理）
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            // 如果玩家仍然在线
-            if (player.isOnline()) {
-                // 传送到死亡位置
-                Location respawnLoc = deathLocations.get(playerUUID);
-                player.teleport(Objects.requireNonNullElseGet(respawnLoc, () -> player.getWorld().getSpawnLocation()));
-
-                // 设置为旁观者模式
-                player.setGameMode(GameMode.SPECTATOR);
-            }
-        }, 1L);
+        // 立即重生玩家并设置为旁观者模式
+        respawnPlayerAsSpectator(player, playerUUID);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -122,26 +86,71 @@ public class OnPlayerDeath implements Listener {
         UUID playerUUID = player.getUniqueId();
 
         Map<String, Object> cooldownInfo = plugin.getMySQL().isPlayerInCooldown(playerUUID);
-        if ((boolean) cooldownInfo.get("status")) {
+        if ((boolean) cooldownInfo.get("status") && deathLocations.containsKey(playerUUID)) {
             // 有死亡记录，将重生点设置为死亡位置
-            if (deathLocations.containsKey(playerUUID)) {
-                event.setRespawnLocation(deathLocations.get(playerUUID));
+            event.setRespawnLocation(deathLocations.get(playerUUID));
+        }
+    }
+
+    /**
+     * 获取死亡消息
+     */
+    private String getDeathMessage(PlayerDeathEvent event) {
+        Component deathMessageComponent = event.deathMessage();
+        return deathMessageComponent != null ?
+                LegacyComponentSerializer.legacySection().serialize(deathMessageComponent) :
+                "Unknown";
+    }
+
+    /**
+     * 创建死亡数据Map
+     */
+    private Map<String, Object> createDeathDataMap(long currentTime, long reviveTime, String deathCause, Location deathLoc) {
+        Map<String, Object> deathDataMap = new HashMap<>();
+        deathDataMap.put("deathAt", currentTime);
+        deathDataMap.put("reviveAt", reviveTime);
+        deathDataMap.put("deathCaused", deathCause);
+
+        // 保存死亡位置信息
+        deathDataMap.put("deathX", deathLoc.getX());
+        deathDataMap.put("deathY", deathLoc.getY());
+        deathDataMap.put("deathZ", deathLoc.getZ());
+        deathDataMap.put("deathWorld", deathLoc.getWorld().getName());
+
+        return deathDataMap;
+    }
+
+    /**
+     * 处理物品掉落
+     */
+    private void handleItemDrop(Player player, Location deathLoc) {
+        if (!config.getBoolean("settings.keepInventory", false)) {
+            ItemStack[] items = player.getInventory().getContents();
+            player.getInventory().clear();
+            for (ItemStack item : items) {
+                if (item != null && !item.getType().isAir()) {
+                    player.getWorld().dropItemNaturally(deathLoc, item);
+                }
             }
         }
     }
 
-    // Paper专有事件 - 玩家重生后处理
-//    @EventHandler(priority = EventPriority.HIGHEST)
-//    public void onPlayerPostRespawn(PlayerPostRespawnEvent event) {
-//        Player player = event.getPlayer();
-//        UUID playerUUID = player.getUniqueId();
-//
-//        Map<String, Object> cooldownInfo = plugin.getMySQL().isPlayerInCooldown(playerUUID);
-//        if ((boolean) cooldownInfo.get("status")) {
-//            // 设置为旁观者模式 - 使用Paper API直接设置，无需调度任务
-//            player.setGameMode(GameMode.SPECTATOR);
-//        }
-//    }
+    /**
+     * 将玩家设置为旁观者模式并传送到死亡位置
+     */
+    private void respawnPlayerAsSpectator(Player player, UUID playerUUID) {
+        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            if (player.isOnline()) {
+                // 传送到死亡位置
+                Location respawnLoc = deathLocations.get(playerUUID);
+                player.teleport(Objects.requireNonNullElseGet(respawnLoc,
+                        () -> player.getWorld().getSpawnLocation()));
+
+                // 设置为旁观者模式
+                player.setGameMode(GameMode.SPECTATOR);
+            }
+        }, 1L);
+    }
 
     /**
      * 将 Map 转换为 JSON 字符串
