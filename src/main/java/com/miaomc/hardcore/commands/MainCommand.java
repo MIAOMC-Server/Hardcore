@@ -110,7 +110,7 @@ public class MainCommand extends Command {
         }
 
         // 执行复活逻辑
-        performRevivalProcess(player, playerUUID, "command.revive", null);
+        performRevivalProcess(player, playerUUID, "command.revive", null, true);
     }
 
     private void handleRevivePayCommand(CommandSender sender) {
@@ -161,7 +161,7 @@ public class MainCommand extends Command {
             playerPoints.getAPI().take(playerUUID, requiredPoints);
 
             // 执行复活逻辑，使用不同的复活方法标识
-            performRevivalProcess(player, playerUUID, "command.revive.pay", "使用代币");
+            performRevivalProcess(player, playerUUID, "command.revive.pay", null, true);
         } else {
             Messager.sendMessage(player, "&c你没有足够的代币进行付费复活");
         }
@@ -185,7 +185,8 @@ public class MainCommand extends Command {
     /**
      * 执行玩家复活流程
      */
-    private void performRevivalProcess(Player player, UUID playerUUID, String revivalMethod, String customMessage) {
+    @SuppressWarnings("SameParameterValue")
+    private void performRevivalProcess(Player player, UUID playerUUID, String revivalMethod, String customMessage, boolean isHandled) {
         // 执行重生流程
         List<String> reviveCommands = plugin.getConfig().getStringList("settings.reviveProcess");
         for (String cmd : reviveCommands) {
@@ -196,8 +197,13 @@ public class MainCommand extends Command {
         // 设置生存模式
         player.setGameMode(GameMode.SURVIVAL);
 
+        // 安全地恢复玩家血量和饱食度到满值
+        player.setHealth(20.0); // 默认最大生命值
+        player.setFoodLevel(20);
+        player.setSaturation(20f); // 设置饱和度满值
+
         // 更新数据库
-        plugin.getMySQL().updateRevivalMethod(playerUUID, revivalMethod, false);
+        plugin.getMySQL().updateRevivalMethod(playerUUID, revivalMethod, isHandled);
 
         // 发送复活消息
         Messager.sendRevivalMessage(playerUUID);
