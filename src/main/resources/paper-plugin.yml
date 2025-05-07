@@ -1,0 +1,35 @@
+name: Hardcore
+version: '${project.version}'
+main: com.miaomc.hardcore.HardCore
+api-version: '1.21'
+prefix: Hardcore
+load: STARTUP
+authors: [ KumaKorin ]
+description: A plugin that designs for MIAOMC hardcore subserver.
+website: https://korin.im
+
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+    PlayerPoints:
+      load: BEFORE
+      required: false
+
+permissions:
+  miaomc.hardcore.admin:
+    description: 允许管理员执行所有管理命令
+    default: op
+  miaomc.hardcore.revive:
+    description: 允许玩家复活
+    default: true
+commands:
+  mhc:
+    description: 难狗模式主命令
+    usage: /mhc help
+    aliases: [ hardcore ]
+  hardcore:
+    description: 难狗模式主命令
+    usage: /hardcore help
+    aliases: [ mhc ]
