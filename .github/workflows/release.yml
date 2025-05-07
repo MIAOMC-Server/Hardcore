@@ -1,0 +1,58 @@
+name: Test and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      packages: read
+
+    steps:
+      - name: 🛎️ 检出代码
+        uses: actions/checkout@v3
+
+      - name: ☕ 设置Java 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 🏗️ 编译项目
+        run: mvn clean compile
+
+      - name: 🧪 运行测试
+        run: mvn test
+
+      - name: 📦 打包JAR
+        run: mvn package -DskipTests
+
+      - name: 🏷️ 获取版本
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 🚀 创建Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Hardcore ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            target/Hardcore-*.jar
+          body: |
+            ## 📦 Hardcore 插件 ${{ steps.get_version.outputs.VERSION }} 发布
+            
+            ### 📋 版本说明
+            支持Minecraft 1.21.X
+            
+            ### 🔧 安装方法
+            1. 下载JAR文件
+            2. 将其放入服务器的plugins文件夹
+            3. 重启服务器或使用插件管理器加载插件
