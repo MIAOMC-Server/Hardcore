@@ -113,12 +113,12 @@ public class OnPlayerDeath implements Listener {
         deathDataMap.put("deathWorld", deathLoc.getWorld().getName());
 
         // 创建嵌套的位置对象
-        Map<String, Double> locationMap = new HashMap<>();
+        Map<String, String> locationMap = new HashMap<>();
 
         // 使用String.format保留2位小数，然后转回Double
-        locationMap.put("X", Double.parseDouble(String.format("%.2f", deathLoc.getX())));
-        locationMap.put("Y", Double.parseDouble(String.format("%.2f", deathLoc.getY())));
-        locationMap.put("Z", Double.parseDouble(String.format("%.2f", deathLoc.getZ())));
+        locationMap.put("X", String.format("%.2f", deathLoc.getX()));
+        locationMap.put("Y", String.format("%.2f", deathLoc.getY()));
+        locationMap.put("Z", String.format("%.2f", deathLoc.getZ()));
 
         deathDataMap.put("deathLoc", locationMap);
 

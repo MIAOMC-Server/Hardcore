@@ -42,16 +42,16 @@ public class OnPlayerJoin implements Listener {
             // 设置定时器，当冷却结束时通知玩家
             scheduleRevivalTask(playerUUID, timeRemain);
         } else {
-            // 检查玩家是否有未处理的死亡记录
+            // 关键修改：不管冷却是否结束，检查是否有未处理的死亡记录
             if (plugin.getMySQL().hasUnhandledDeathRecord(playerUUID)) {
                 // 强制设置为观察者模式
                 player.setGameMode(GameMode.SPECTATOR);
 
                 // 发送提示消息，告知玩家需要手动复活
-                Messager.sendMessage(playerUUID, "&a冷却结束！");
+                Messager.sendMessage(playerUUID, "&a你可以复活了！");
                 Messager.sendMessage(playerUUID, "&e使用 /mhc revive 命令重生。");
             } else if (plugin.getConfig().getBoolean("settings.useHardcoreHearts", true)) {
-                // 玩家不在冷却中且已正确复活，设置极限模式爱心显示
+                // 正常进入游戏
                 HardcoreDisplayManager.setHardcoreHearts(player);
             }
         }
