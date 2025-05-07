@@ -1,0 +1,22 @@
+name: Java CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Build and Test with Maven
+      run: mvn clean test
+      env:
+        # 如果有需要特殊权限的测试可以在这里配置
+        TEST_ENV: "github_ci"
