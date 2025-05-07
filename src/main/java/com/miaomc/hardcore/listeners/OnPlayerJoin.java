@@ -30,30 +30,22 @@ public class OnPlayerJoin implements Listener {
         boolean inCooldown = (boolean) result.get("status");
 
         if (inCooldown) {
-            // 玩家在冷却中，设置为旁观者模式
+            // 处理冷却中的逻辑（无需修改）
+            player.setGameMode(GameMode.SPECTATOR);
+            long timeRemain = (long) result.get("timeRemain");
+            Messager.sendTimeRemainMessage(playerUUID, timeRemain);
+            scheduleRevivalTask(playerUUID, timeRemain);
+        } else if (plugin.getMySQL().hasUnhandledDeathRecord(playerUUID)) {
+            // 有未处理的死亡记录，设置为观察者模式
             player.setGameMode(GameMode.SPECTATOR);
 
-            // 获取剩余冷却时间（秒）
-            long timeRemain = (long) result.get("timeRemain");
-
-            // 发送冷却消息
-            Messager.sendTimeRemainMessage(playerUUID, timeRemain);
-
-            // 设置定时器，当冷却结束时通知玩家
-            scheduleRevivalTask(playerUUID, timeRemain);
-        } else {
-            // 关键修改：不管冷却是否结束，检查是否有未处理的死亡记录
-            if (plugin.getMySQL().hasUnhandledDeathRecord(playerUUID)) {
-                // 强制设置为观察者模式
-                player.setGameMode(GameMode.SPECTATOR);
-
-                // 发送提示消息，告知玩家需要手动复活
-                Messager.sendMessage(playerUUID, "&a你可以复活了！");
-                Messager.sendMessage(playerUUID, "&e使用 /mhc revive 命令重生。");
-            } else if (plugin.getConfig().getBoolean("settings.useHardcoreHearts", true)) {
-                // 正常进入游戏
-                HardcoreDisplayManager.setHardcoreHearts(player);
-            }
+            // 直接让玩家可以使用重生命令
+            // 不依赖deathData和isDeathCooldownEnded
+            Messager.sendMessage(playerUUID, "&a你可以重生了！");
+            Messager.sendMessage(playerUUID, "&e使用 /mhc revive 命令重生。");
+        } else if (plugin.getConfig().getBoolean("settings.useHardcoreHearts", true)) {
+            // 正常进入游戏
+            HardcoreDisplayManager.setHardcoreHearts(player);
         }
     }
 

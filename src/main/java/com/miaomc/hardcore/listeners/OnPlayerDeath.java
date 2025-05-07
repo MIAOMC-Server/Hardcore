@@ -174,6 +174,11 @@ public class OnPlayerDeath implements Listener {
             Object value = entry.getValue();
             if (value instanceof String) {
                 json.append("\"").append(value).append("\"");
+            } else if (value instanceof Map) {
+                // 递归处理嵌套Map
+                @SuppressWarnings("unchecked")
+                Map<String, Object> nestedMap = (Map<String, Object>) value;
+                json.append(convertMapToJsonString(nestedMap));
             } else {
                 json.append(value);
             }

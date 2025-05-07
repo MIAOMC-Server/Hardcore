@@ -375,10 +375,8 @@ public class MySQL {
                     String deathDataStr = resultSet.getString("death_data");
                     boolean handled = resultSet.getBoolean("handled");
 
-                    // 如果有死亡数据但未被处理
-                    if (deathDataStr != null && !deathDataStr.isEmpty() && !handled) {
-                        return isDeathCooldownEnded(deathDataStr);
-                    }
+                    // 只检查是否有死亡数据且未被处理
+                    return deathDataStr != null && !deathDataStr.isEmpty() && !handled;
                 }
             }
         } catch (SQLException e) {
@@ -394,7 +392,7 @@ public class MySQL {
      * @param deathDataStr 死亡数据JSON
      * @return 如果冷却已结束返回true
      */
-    private boolean isDeathCooldownEnded(String deathDataStr) {
+    public boolean isDeathCooldownEnded(String deathDataStr) {
         try {
             JsonElement element = JsonParser.parseString(deathDataStr);
             JsonObject deathData = element.getAsJsonObject();
