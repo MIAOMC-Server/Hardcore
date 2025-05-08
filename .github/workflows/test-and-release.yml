@@ -2,7 +2,6 @@ name: Test and Release
 
 on:
   push:
-    branches: [ main ]  # 添加了分支推送触发
     tags:
       - 'v*'
 
