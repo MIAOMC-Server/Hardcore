@@ -5,7 +5,6 @@ on:
     branches: [ main ]  # 添加了分支推送触发
     tags:
       - 'v*'
-  workflow_dispatch:    # 允许手动触发
 
 jobs:
   build-and-test:
