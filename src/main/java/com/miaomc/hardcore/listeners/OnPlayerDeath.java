@@ -116,9 +116,9 @@ public class OnPlayerDeath implements Listener {
         Map<String, String> locationMap = new HashMap<>();
 
         // 使用String.format保留2位小数，然后转回Double
-        locationMap.put("X", String.format("%.2f", deathLoc.getX()));
-        locationMap.put("Y", String.format("%.2f", deathLoc.getY()));
-        locationMap.put("Z", String.format("%.2f", deathLoc.getZ()));
+        locationMap.put("x", String.format("%.2f", deathLoc.getX()));
+        locationMap.put("y", String.format("%.2f", deathLoc.getY()));
+        locationMap.put("z", String.format("%.2f", deathLoc.getZ()));
 
         deathDataMap.put("deathLoc", locationMap);
 

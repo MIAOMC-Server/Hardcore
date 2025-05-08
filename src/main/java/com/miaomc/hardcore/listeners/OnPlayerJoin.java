@@ -67,7 +67,7 @@ public class OnPlayerJoin implements Listener {
                 Map<String, Object> currentStatus = plugin.getMySQL().isPlayerInCooldown(playerUUID);
                 if (!(boolean) currentStatus.get("status")) {
                     // 冷却已结束，通知玩家可以复活
-                    Messager.sendRevivalMessage(playerUUID);
+                    Messager.sendMessage(playerUUID, "&a冷却已结束，使用 &e/mhc revive &a立即重生！");
                 }
             }
         }, ticksRemain);
