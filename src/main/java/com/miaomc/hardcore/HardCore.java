@@ -32,6 +32,12 @@ public final class HardCore extends JavaPlugin {
 
         Messager.init(this);
 
+        if (getConfig().getBoolean("settings.placeholderOnly", false)) {
+            registerPlaceholders();
+            getLogger().info("当前配置为仅注册占位符，插件将不会启用其他功能。");
+            return;
+        }
+        
         registerListeners();
         registerCommands();
 
